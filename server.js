@@ -61,6 +61,39 @@ app.post("/listener", async (req, res) => {
     return res.status(500).send("Server error");
   }
 });
+// Admin Overview Route
+app.get("/admin/overview", async (req, res) => {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Total leads
+    const { data: totalLeadsData, error: totalLeadsError } = await supabase
+      .from("lead_listener_submissions")
+      .select("*", { count: "exact", head: true });
+
+    if (totalLeadsError) throw totalLeadsError;
+
+    // New leads (last 7 days)
+    const { data: newLeadsData, error: newLeadsError } = await supabase
+      .from("lead_listener_submissions")
+      .select("*", { count: "exact", head: true })
+      .gte("timestamp", sevenDaysAgo.toISOString());
+
+    if (newLeadsError) throw newLeadsError;
+
+    return res.json({
+      totalLeads: totalLeadsData?.length ?? 0,
+      newLeads: newLeadsData?.length ?? 0,
+    });
+  } catch (err) {
+    console.error("Error in /admin/overview:", err);
+    return res.status(500).json({
+      error: "Failed to load overview stats",
+      details: err.message,
+    });
+  }
+});
 
 // Port logic
 const PORT = process.env.PORT || 3000;
