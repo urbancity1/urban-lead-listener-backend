@@ -8,11 +8,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+
+
 
 // Gmail SMTP transporter
 const transporter = nodemailer.createTransport({
